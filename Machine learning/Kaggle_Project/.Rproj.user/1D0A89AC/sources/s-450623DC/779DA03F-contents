@@ -1,0 +1,45 @@
+---
+title: "Projet"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+```{r}
+data <- read.csv("data.csv", sep=",")
+test <- read.csv("test.csv", sep=",")
+data =na.omit(data)
+test=na.omit(test)
+data
+test
+'Nous avons 10 variables quantitatives et nous devons predire "SeriousDlqin2yrs"'
+
+
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(caTools)
+library(MASS)
+library(rpart)
+library(rpart.plot)
+boxplot(data)
+```
+
+```{r}
+library(randomForest)
+set.seed(123)
+modelRandomForest = randomForest(SeriousDlqin2yrs ~ ., data = data, mtry = 7, importance = TRUE, ntrees = 500, family = "binomial")
+preditct = predict(modelRandomForest, newdata = test)
+
+```
+

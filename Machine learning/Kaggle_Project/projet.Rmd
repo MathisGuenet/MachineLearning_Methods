@@ -1,0 +1,77 @@
+---
+title: "Projet"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+```
+
+```{r}
+data <- read.csv("data.csv", sep=",")
+test <- read.csv("test.csv", sep=",")
+data =na.omit(data)
+test=na.omit(test)
+data
+test
+library("ggplot2")
+'Nous avons 10 variables quantitatives et nous devons predire "SeriousDlqin2yrs"'
+
+boxplot(data)
+
+```
+
+```{r}
+"Test logistic regression"
+calc_acc = function (predicted,actual){
+  mean(predicted ==actual)
+}
+df_lm = glm(SeriousDlqin2yrs ~ ., data = data, family = "binomial")
+df_lm_pred  = predict(df_lm,test, type="response")
+df_lm_pred = ifelse(df_lm_pred>0.5,1,0)
+to_be_submitted = data.frame(id=rownames(test), SeriousDlqin2yrs=df_lm_pred)
+write.csv(to_be_submitted , file = "to_be_submitted.csv", row.names = F)
+```
+
+```{r}
+"Test simple tree "
+#data = subset(data,select = -c(NumberOfTime60_89DaysPastDueNotWorse))
+df_tree = rpart(SeriousDlqin2yrs ~ . , data = data)
+df_tree_predict = predict(df_tree, newdata = test)
+df_tree_predict =ifelse(df_tree_predict>0.5,1,0)
+to_be_submitted = data.frame(id=rownames(test), SeriousDlqin2yrs=df_tree_predict)
+write.csv(to_be_submitted , file = "to_be_submitted.csv", row.names = F)
+```
+
+```{r}
+"test bagging"
+library(randomForest)
+df_bagging = randomForest(SeriousDlqin2yrs ~ ., data = data, ntrees = 500, family = "binomial",  mtry = 57)
+df_bagging_predict = predict(df_bagging, newdata = test)
+df_bagging_predict =ifelse(df_bagging_predict>0.5,1,0)
+```
+```{r}
+"test tuning"
+library(caret)
+control <- trainControl(method='cv',number=10,verbose=TRUE)
+rf = train(
+  data = data, 
+  as.factor(SeriousDlqin2yrs) ~ ., # Specifying the response variable and the feature variables
+  method = "rpart", # Specifying the model to use
+  metric = 'Accuracy',
+  trControl=control)
+
+# Get the predictions of your model in the test set
+predictions = predict(rf, newdata = test)
+to_be_submitted = data.frame(id=rownames(test), SeriousDlqin2yrs=predictions)
+write.csv(to_be_submitted , file = "to_be_submitted15.csv", row.names = F)
+```
+
+

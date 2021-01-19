@@ -1,0 +1,142 @@
+---
+title: "GMM"
+author : "MG"
+output: html_document
+date: "`r format(Sys.time())`"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+#Q1
+```{r}
+  data1 <- read.csv("data1.csv",  sep=",")
+  data2 <- read.csv("data2.csv",  sep=",")
+par(mfrow=c(1,2))
+plot(data1$X1,data1$X2, xlab='X1', ylab='X2', col = data1$truth, main = "Data1")
+plot(data2$X1,data2$X2, xlab='X1', ylab='X2', col = data2$truth, main = "Data2")
+```
+
+#Q2 an other plot with Kmean clustering
+```{r}
+library(factoextra)
+library(gridExtra)
+library(ggplot2)
+set.seed(123)
+km1 <- kmeans(data1[,1:2], 4)
+km2 <- kmeans(data2[,1:2], 4)
+par(mfrow=c(1,2))
+plot(data1[,1:2], pch=21, bg=km1$cluster)
+plot(data2[,1:2], pch=21, bg=km2$cluster,
+              main = "Clustering Plot")
+
+#Kmeans isn't the most optimized for the data2, the clustering is not very good
+```
+
+#Q3 fit GMM
+```{r}
+library(mclust)
+gmm1 <- Mclust(data1[,1:2])
+gmm2 <- Mclust(data2[,1:2])
+```
+
+#Q4 Show the Summary
+```{r}
+summary(gmm1)
+summary(gmm2)
+```
+
+#Q5
+```{r}
+par(mfrow=c(1,2))
+plot(gmm2, what = "classification")
+plot(gmm2, what = "uncertainty")
+#Classification mod allows to plot the regular classification of the data
+#However uncertainty mod plot the points with the respect of their uncertainty, we can see bigger point when point have a high uncertainty
+```
+
+#Q6 To see the values of BIC for different number of mixtures
+```{r}
+par(mfrow=c(1,2))
+plot(gmm1, what = "BIC")
+plot(gmm2, what = "BIC")
+#we can see the break at k = 4, so we have 4 clusters
+```
+
+#Q7 density function
+```{r}
+density = densityMclust(data2)
+summary(density)
+```
+# plot 2d density
+```{r}
+par(mfrow=c(1,2))
+plot(gmm1, what = 'density')
+plot(gmm2, what = 'density')
+```
+#plot 3d density
+```{r}
+density2 = densityMclust(data2[,1:2])
+density1 = densityMclust(data1[,1:2])
+par(mfrow=c(1,2))
+plot(density1, what = 'density',data = data1[,1:2], type = "hdr", prob = seq(0.1, 0.9, by = 0.1), col = "slategrey")
+plot(density2, what = 'density',data = data2[,1:2], type = "hdr", prob = seq(0.1, 0.9, by = 0.1), col = "slategrey")
+```
+#An other 3d density plot
+```{r}
+par(mfrow=c(1,2))
+plot(density1, what = 'density',data = data1[,1:2], type = "persp", prob = seq(0.1, 0.9, by = 0.1))
+plot(density2, what = 'density',data = data2[,1:2], type = "persp", prob = seq(0.1, 0.9, by = 0.1))
+#for the bot plot, we can properly see the 4 gaussians
+```
+
+#Q8 Generation of our 3 gaussian
+```{r}
+set.seed(123)
+g1 <- rnorm(100, mean = 0, sd=3)
+g2 <- rnorm(100, mean = 20, sd=5)
+g3 <- rnorm(100, mean = 40, sd=7)
+gauss = c(g1,g2,g3)
+#get the truth values for the 3 gaussian
+truth = c(rep(1,100),rep(2,100),rep(3,100))
+#join the data
+data = cbind(gauss,truth)
+```
+
+#Q9 plot generated data on 1 axe with respect of truth
+```{r}
+par(mfrow=c(1,1))
+stripchart(data, pch=21, bg=mat[,2])
+```
+
+#Q10 plot histogram
+```{r}
+hist(data[,1])
+#we observe the 3 gaussian with the frequency of the 3 gaussian are higher at their mean
+```
+
+#Q11 Generate the GMM of our new datas
+```{r}
+gmm3 <- Mclust(data[,1])
+summary(gmm3)
+#GMM model find the 3 clusters/gaussian, we see that the 2 gaussians with a higher sd are have more mistakes than the first gaussian with less sd
+```
+#plot the GMM
+```{r}
+plot(gmm3, what = "classification")
+#The black line represent the unclassifed data. We can see that the classification is linear and corresponds to the 3 gaussians
+```
+
+#Q12 12. Apply a density estimate on your generated data and visualize it
+```{r}
+density3 = densityMclust(data2[,1])
+#plot(density3, what = "density")
+plot(gmm3, what = "density")
+```
+
+

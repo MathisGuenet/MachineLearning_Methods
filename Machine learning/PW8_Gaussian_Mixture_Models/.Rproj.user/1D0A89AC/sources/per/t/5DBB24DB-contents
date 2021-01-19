@@ -1,0 +1,174 @@
+---
+title: "Untitled"
+author : "MG"
+output: html_document
+date: "`r format(Sys.time())`"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+##Q1    
+```{r}
+ligue1 <- read.csv("http://mghassany.com/MLcourse/datasets/ligue1_17_18.csv", row.names=1, sep=";")
+```
+##Q2
+```{r}
+knitr::kable(ligue1[1:2,1:10])
+```
+##Q3
+```{r}
+pointsCards = ligue1[,c("Points","yellow.cards")]  
+```
+##Q4
+```{r}
+set.seed(123)
+k=2
+ligue1.km = kmeans(pointsCards,centers = k, iter.max = 20, nstart = 25,trace = TRUE)
+```
+##Q5
+```{r}
+print(ligue1.km)
+```
+we can see 2 clusters, the best teams are in cluster 2 and lower teams are in cluster 1
+##Q6
+centroid for cluster 1 is (44.75,71.56) and centroid for cluster 2 is (82.00,71.25)
+##Q7
+```{r}
+library(ggpubr)
+library(factoextra)
+fviz_cluster(ligue1.km, data = pointsCards,
+             palette = c("blue", "orange"), 
+             geom = "point",
+             ellipse.type = "convex", 
+             ggtheme = theme_bw(),
+             
+             )+
+  stat_mean(aes(color = cluster), size = 4)
+```
+##Q9
+```{r}
+k = 3
+ligue1.km3 = kmeans(pointsCards,centers = k, iter.max = 20, nstart = 25,trace = FALSE)
+k = 4
+ligue1.km4 = kmeans(pointsCards,centers = k, iter.max = 20, nstart = 25,trace = FALSE)
+print(ligue1.km3)
+print(ligue1.km4)
+fviz_cluster(ligue1.km4, data = pointsCards,
+             palette = c("blue", "orange","red","green"), 
+             geom = "point",
+             ellipse.type = "convex", 
+             ggtheme = theme_bw(),
+             
+             )+
+  stat_mean(aes(color = cluster), size = 4)
+```
+##Q10
+```{r}
+mydata = ligue1
+wss = (nrow(mydata)-1)*sum(apply(mydata,2,var)) #for i = 1
+  for (i in 2:15) wss[i] = sum(kmeans(mydata,
+                                       centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares")
+```
+We can see that the optimum can be 4 or 5 
+##Q11
+```{r}
+mydata = ligue1
+  for (i in 1:15) wss[i] = kmeans(mydata,centers=i)$betweenss
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares")
+```
+between_SS is sum of squares by cluster
+We can see that the optimum can be 4 or 5 
+
+##Q12
+So far, we have only taken the information of two variables for performing clustering. Now we will apply kmeans() on the original dataset ligue1. Using PCA, we can visualize the clustering performed with all the available variables in the dataset.
+First we need to scale our dataset
+```{r}
+ligue1_scaled = scale(ligue1)
+```
+##Q13
+```{r}
+set.seed(123)
+k = 3
+ligue1_scaled.km3 = kmeans(pointsCards,centers = k, iter.max = 20, nstart = 25,trace = FALSE)
+ligue1.km3 = kmeans(pointsCards,centers = k, iter.max = 20, nstart = 25,trace = FALSE)
+print(ligue1_scaled.km3)
+print(ligue1.km3)
+```
+##Q14
+```{r}
+table(ligue1.km3$cluster,ligue1_scaled.km3$cluster)
+```
+##Q15
+```{r}
+library(factoextra)
+library(gridExtra)
+library(ggplot2)
+pca.ligue1 = princomp(ligue1, cor=T)
+fviz_screeplot(pca.ligue1, addlabels = TRUE, ylim = c(0, 80))
+print(pca.ligue1)
+```
+We need to also apply pca on scaled data since they have the same number of variable(dimension)
+##Q16
+```{r}
+fviz_pca_biplot(pca.ligue1, repel = TRUE) 
+```
+the first dimension mainly explain the ranking of the championship but the secon dimension doesn't explain much
+##Q17
+```{r}
+fviz_cluster(ligue1.km3, data = ligue1, # km.ligue1 is where you stored your kmeans results
+              palette = c("red", "blue", "green"), # 3 colors since 3 clusters
+              ggtheme = theme_minimal(),
+              main = "Clustering Plot")
+```
+##Q18
+
+
+##Q1
+```{r}
+iris = read.csv("iris.data")
+samplex = sample(1:nrow(iris), 40) 
+# We split the datasets
+sampleiris = iris[samplex,]
+sampleiris
+```
+## Q3
+```{r}
+D <-dist(sampleiris,method = "euclidean",diag = FALSE,upper = FALSE,p = 2)
+```
+
+
+## Q4
+
+```{r}
+dendro.avg <- hclust(D, method="average")
+plot(dendro.avg)
+```
+
+## Q6
+```{r}
+plot(dendro.avg,hang=-1,label = sampleiris$class)
+```
+
+## Q7
+```{r}
+groups.avg <- cutree(dendro.avg,3)
+```
+
+## Q8
+```{r}
+rect.hclust(dendro.avg,3,cluster = groups.avg)
+```
+
+
+
+
+

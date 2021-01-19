@@ -1,0 +1,106 @@
+#Bagging : a partir d'un training set, on obtient plusieurs arbres (trainig set) avec tous les predicteurs choisi
+#aléatoirement
+#Random Forest : a partir d'un training set, on obtient plusieurs arbres (training set) avec une partie des predicteurs
+#choisi aléatoirement
+
+
+library(MASS)
+library(caTools)
+set.seed(18)
+Boston_idx = sample(1:nrow(Boston), nrow(Boston) / 2) 
+# You don't know what we just did?
+# open the documentation of the function sample by 
+# writing ?sample in the R console.
+# Note that this is one of the ways to split it randomly and it is not necessary the best.
+Boston_train = Boston[Boston_idx,]
+Boston_test  = Boston[-Boston_idx,]
+
+#tree
+library(rpart)
+Boston_tree = rpart(medv~., data = Boston_train)
+plot(Boston_tree)
+text(Boston_tree, pretty = 0)
+title(main = "Regression Tree")
+
+library(rpart.plot)
+rpart.plot(Boston_tree)
+
+#summary, complexity
+printcp(Boston_tree)
+
+rmse = function(real, predicted){sqrt(mean((real - predicted)^2))}
+
+#question 7 rmse : root mean squared error
+Boston_tree_predict = predict(Boston_tree, newdata = Boston_test)
+rmse_tree_model = rmse(Boston_test$medv,Boston_tree_predict)
+rmse_tree_model #rmse for the tree model
+
+#question 8 we want to compare rmse of tree model with linear regression
+Boston_lm = lm(formula =  medv ~ ., data = Boston_train)
+Boston_lm_predict = predict(Boston_lm, newdata = Boston_test)
+rmse_lm_model = rmse(Boston_test$medv,Boston_lm_predict)
+rmse_lm_model #rmse for the linear regression
+
+
+#plot the difference 
+plot(Boston_tree_predict, Boston_test$medv, 
+     xlab = "Predicted", ylab = "Real", 
+     main = "Predicted vs Real: Single Tree, Test Data",
+     col = "#cd0050", pch = 20)
+grid()
+abline(0, 1, col = "blue", lwd = 2)
+
+plot(Boston_lm_predict, Boston_test$medv,
+     xlab = "Predicted", ylab = "Actual",
+     main = "Predicted vs Actual: Linear Model, Test Data",
+     col = "#cd0050", pch = 20)
+grid()
+abline(0, 1, col = "blue", lwd = 2)
+
+
+#question 9 and 10 : Bagging is a special case of randomforest where mtry is equal to p, the number of predictors.
+library(randomForest)
+Boston_bagging = randomForest(formula= medv~., data= Boston_test, mtry=13)
+#to get number of predictors : we have 13 predictors
+#summary(Boston)
+
+Boston_bagging_predict = predict(Boston_bagging, newdata = Boston_test)
+
+#we can see that predicted datas with bagging method are more closer to the real than just using single tree
+plot(Boston_bagging_predict, Boston_test$medv, 
+     xlab = "Predicted", ylab = "Real", 
+     main = "Predicted vs Real: bagging Tree, Test Data",
+     col = "#cd0050", pch = 20)
+grid()
+abline(0, 1, col = "blue", lwd = 2)
+rmse_bagging_model = rmse(Boston_test$medv,Boston_bagging_predict)
+rmse_bagging_model
+#the RMSE model give a large lower RMSE than linear regression or single tree method
+
+
+#question 11 : randomForest, we take randomly a part of predictors, suggestion is to use mtry equal to p/3
+Boston_randomForest = randomForest(formula= medv~., data= Boston_test, mtry=13/3)
+Boston_randomForest_predict = predict(Boston_randomForest, newdata = Boston_test)
+#we can see that predicted datas with randomForest method are more closer to the real than just using single tree but 
+#almost the same as bagging tree
+plot(Boston_randomForest_predict, Boston_test$medv, 
+     xlab = "Predicted", ylab = "Real", 
+     main = "Predicted vs Real: randomForest Tree, Test Data",
+     col = "#cd0050", pch = 20)
+grid()
+abline(0, 1, col = "blue", lwd = 2)
+rmse_randomForest_model = rmse(Boston_test$medv,Boston_randomForest_predict)
+rmse_randomForest_model
+#however the randomForest model give a higher RMSE than the bagging model
+
+
+#question 12 Get the most usefull predictors
+importance(Boston_randomForest)
+varImpPlot(Boston_randomForest)
+
+#question 14  Boosting method
+library(gbm)
+Boston_boost = gbm(medv ~ ., data = Boston_train, distribution = "gaussian", 
+                   n.trees = 5000, interaction.depth = 4, shrinkage = 0.01)
+
+  

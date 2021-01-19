@@ -1,0 +1,23 @@
+"0","library(randomForest)"
+"2","le package ‘randomForest’ a été compilé avec la version R 4.0.3"
+"2","randomForest 4.6-14
+"
+"2","Type rfNews() to see new features/changes/bug fixes.
+"
+"2","
+Attachement du package : ‘randomForest’
+
+"
+"2","The following object is masked from ‘package:ggplot2’:
+
+    margin
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    combine
+
+"
+"0","set.seed(123)"
+"0","modelRandomForest = randomForest(SeriousDlqin2yrs ~ ., data = data, mtry = 7, importance = TRUE, ntrees = 500, family = ""binomial"")"
+"2","The response has five or fewer unique values.  Are you sure you want to do regression?"
